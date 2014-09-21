@@ -21,10 +21,8 @@ var app = {
 
 	$debug: $('#debug'),
 	$canvas: null,
-	$canvasFront: null,
 
 	ctx: null,
-	frontCtx: null,
 
 	baseY: null,
 	baseX: null,
@@ -94,68 +92,76 @@ var app = {
 		rapportInnerOuter: 10,
 	},
 
-	densityMax: 100,
 	length: 2000,
 	height: 2000/1.66,
 	maxLength: 2000,
 	colorChangeThreshold: 20,
 	eraserColor: 255,
-	speed: 20,
 
 	alpha: false,
 
 	colorOffset: {red: 0, green: 1, blue: 2, alpha: 3, grey: 4},
 
 	init: function(){
+		app.retrieveSettings();
+
 		app.w = window.innerWidth;
 		app.h = window.innerHeight;
 
 		this.baseY = app.h*.5;
 		this.baseX = app.w*.5;
 
-		$('body').html('<div id="debug">Rapide <input type="range" id="input-speed" min="1" max="1000"> Lent<span id="speed"></span><span>Petit <input type="range" id="input-length" min="10" max="5000"> Grand</span><span id="length">Longueure moyenne:</span><span>- <input type="range" id="input-density" min="6" max="1000"> +</span><span id="density">Density:</span></div><canvas id="canvasFront" width="'+app.w+'" height="'+app.h+'"></canvas><canvas id="myCanvas" width="'+app.w+'" height="'+app.h+'"></canvas>');
 		this.$canvas = document.getElementById('myCanvas');
-		this.$canvasFront = document.getElementById('canvasFront');
+
+		var $canvasElement = $("#myCanvas");
+		$canvasElement.attr('height', app.h);
+		$canvasElement.attr('width', app.w);
+
 
 		this.ctx = this.$canvas.getContext("2d");
-		this.frontCtx = this.$canvasFront.getContext("2d");
 		this.ctx.lineWidth = 1;
 		this.ctx.strokeStyle = 'rgba(0,0,0,0.2)';
 		//this.ctx.globalCompositeOperation = 'multiply';
 
-		
-
-		//this.angle = 360/this.howMuch;
+		// Retrieve debug elements tu update them lateer
 		this.debug= $('#debug');
 		this.debug_length = $('#length');
 		this.debug_density = $('#density');
-		this.debug_level = $('#saturation_level');
-		this.debug_color = $('#color');
-		this.debug_xy = $('#axis');
 		this.debug_speed = $('#speed');
 
-		// Set value aqnd listen to input change
+		// Set value and listen to input change
 		var $inputSpeed = $('#input-speed');
 		var $inputLength = $('#input-length');
 		var $inputDensity = $('#input-density');
 		$inputLength.val(app.maxLength);
 		$inputSpeed.val(app.speed);
-		$inputDensity.val(app.howMuch);
+		$inputDensity.val(app.densityMax);
+
 		$inputSpeed.change(function(){
 			app.speed = $inputSpeed.val();
+			localStorage.setItem("param_speed", app.speed);
 			app.debug_speed.html('Vitesse: '+app.speed+'ms');
 		});
 		app.debug_speed.html('Vitesse: '+app.speed+'ms');
+
 		$inputLength.change(function(){
 			app.maxLength = $inputLength.val();
+			localStorage.setItem("param_maxLength", app.maxLength);
 			app.debug_length.html('Longueure moyenne: '+app.maxLength);
 		});
 		app.debug_length.html('Longueure moyenne: '+app.maxLength);
+
 		$inputDensity.change(function(){
 			app.densityMax = $inputDensity.val();
+			localStorage.setItem("param_densityMax", app.densityMax);
 			app.debug_density.html('Densité max: '+app.densityMax);
 		});
 		app.debug_density.html('Densité max: '+app.densityMax);
+	},
+	retrieveSettings: function () {
+		app.speed = localStorage.getItem("param_speed") || 20;
+		app.densityMax = localStorage.getItem("param_densityMax") || 100;
+		app.maxLength = localStorage.getItem("param_maxLength") || 2000;
 	},
 	rotate: function(cx, cy, x, y, angle) {
 	    var radians = (Math.PI / 180) * angle,
@@ -166,7 +172,6 @@ var app = {
 	        return {x: nx, y: ny}
 	},
 	drawSomeEquerres: function (howMuch){
-		// setInterval(app.draw, app.speed);
 		setTimeout(app.draw, app.speed);
 	},
 	draw: function(){
@@ -288,7 +293,7 @@ var app = {
 		var color = app.eraserColor;
 		if (color==255) {
 			if (app.alpha==false) {
-				if (rgb.a>=245) {
+				if (rgb.a>=250) {
 					app.eraserColor=0;
 					app.alpha=true;
 					return true;
@@ -296,7 +301,7 @@ var app = {
 					return false;
 				}
 			} else {
-				if (rgb.r <= 10, rgb.g <= 10, rgb.b <= 10) {
+				if (rgb.r <= 4, rgb.g <= 4, rgb.b <= 4) {
 					app.eraserColor=0;
 					return true;
 				} else {
@@ -331,5 +336,6 @@ var app = {
 	},
 	debugInfo: function () {
 		rgb = app.getMainColor();
+		console.log(rgb);
 	}
 };
