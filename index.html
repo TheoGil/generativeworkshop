@@ -18,10 +18,23 @@
 			position: absolute;
 			background-color: white;
 		}
-		
 	</style>
 </head>
 <body>
+	<div id="debug">
+		Rapide <input type="range" id="input-speed" min="1" max="1000"> Lent
+		<span id="speed"></span>
+		<span>
+			Petit <input type="range" id="input-length" min="10" max="5000"> Grand
+		</span>
+		<span id="length">Longueure moyenne:</span>
+		<span>
+			- <input type="range" id="input-density" min="6" max="1000"> +
+		</span>
+		<span id="density">Density:</span>
+	</div>
+	<canvas id="canvasFront" width="'+app.w+'" height="'+app.h+'"></canvas>
+	<canvas id="myCanvas" width="'+app.w+'" height="'+app.h+'"></canvas>
 </body>
 </html>
 

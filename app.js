@@ -94,12 +94,13 @@ var app = {
 		rapportInnerOuter: 10,
 	},
 
+	densityMax: 100,
 	length: 2000,
 	height: 2000/1.66,
 	maxLength: 2000,
 	colorChangeThreshold: 20,
 	eraserColor: 255,
-	speed: 10,
+	speed: 20,
 
 	alpha: false,
 
@@ -112,15 +113,17 @@ var app = {
 		this.baseY = app.h*.5;
 		this.baseX = app.w*.5;
 
-		$('body').html('<div id="debug"><span id="length">Length:</span><span id="density">Density:</span><span id="saturation_level">Saturation:</span><span id="color">Color:</span><span id="axis">XY:</span></div><canvas id="canvasFront" width="'+app.w+'" height="'+app.h+'"></canvas><canvas id="myCanvas" width="'+app.w+'" height="'+app.h+'"></canvas>');
+		$('body').html('<div id="debug">Rapide <input type="range" id="input-speed" min="1" max="1000"> Lent<span id="speed"></span><span>Petit <input type="range" id="input-length" min="10" max="5000"> Grand</span><span id="length">Longueure moyenne:</span><span>- <input type="range" id="input-density" min="6" max="1000"> +</span><span id="density">Density:</span></div><canvas id="canvasFront" width="'+app.w+'" height="'+app.h+'"></canvas><canvas id="myCanvas" width="'+app.w+'" height="'+app.h+'"></canvas>');
 		this.$canvas = document.getElementById('myCanvas');
 		this.$canvasFront = document.getElementById('canvasFront');
+
 		this.ctx = this.$canvas.getContext("2d");
 		this.frontCtx = this.$canvasFront.getContext("2d");
-		
 		this.ctx.lineWidth = 1;
 		this.ctx.strokeStyle = 'rgba(0,0,0,0.2)';
 		//this.ctx.globalCompositeOperation = 'multiply';
+
+		
 
 		//this.angle = 360/this.howMuch;
 		this.debug= $('#debug');
@@ -129,9 +132,30 @@ var app = {
 		this.debug_level = $('#saturation_level');
 		this.debug_color = $('#color');
 		this.debug_xy = $('#axis');
-		this.debug.css('display', 'none');
+		this.debug_speed = $('#speed');
 
-
+		// Set value aqnd listen to input change
+		var $inputSpeed = $('#input-speed');
+		var $inputLength = $('#input-length');
+		var $inputDensity = $('#input-density');
+		$inputLength.val(app.maxLength);
+		$inputSpeed.val(app.speed);
+		$inputDensity.val(app.howMuch);
+		$inputSpeed.change(function(){
+			app.speed = $inputSpeed.val();
+			app.debug_speed.html('Vitesse: '+app.speed+'ms');
+		});
+		app.debug_speed.html('Vitesse: '+app.speed+'ms');
+		$inputLength.change(function(){
+			app.maxLength = $inputLength.val();
+			app.debug_length.html('Longueure moyenne: '+app.maxLength);
+		});
+		app.debug_length.html('Longueure moyenne: '+app.maxLength);
+		$inputDensity.change(function(){
+			app.densityMax = $inputDensity.val();
+			app.debug_density.html('Densité max: '+app.densityMax);
+		});
+		app.debug_density.html('Densité max: '+app.densityMax);
 	},
 	rotate: function(cx, cy, x, y, angle) {
 	    var radians = (Math.PI / 180) * angle,
@@ -142,7 +166,8 @@ var app = {
 	        return {x: nx, y: ny}
 	},
 	drawSomeEquerres: function (howMuch){
-		setInterval(app.draw, app.speed);
+		// setInterval(app.draw, app.speed);
+		setTimeout(app.draw, app.speed);
 	},
 	draw: function(){
 		/*CHANGER DE COULEUR A CHAQUE FORME
@@ -187,16 +212,11 @@ var app = {
 			//app.ctx.clearRect(0, 0, app.$canvas.width, app.$canvas.height);
 			
 			
-			if (app.fullIterations<5) {
-				// Les 5 premieres formes auront une taille plus importante que les autres
-				app.length = Math.floor(Math.random()*app.maxLength)+app.h;
-			} else {
-				app.length = Math.floor(Math.random()*app.maxLength);
-			}
+			app.length = Math.floor(Math.random()*app.maxLength)+app.h;
 			app.height = app.length/1.66;
 			app.baseX = Math.floor(Math.random()*app.w);
 			app.baseY = Math.floor(Math.random()*app.h);
-			app.howMuch = Math.floor(Math.random()*100);
+			app.howMuch = Math.floor(Math.random()*app.densityMax);
 			app.angle = 360/app.howMuch;
 
 			if (app.fullIterations>5 && app.doIneedToSwitchStrokeStyle()) {
@@ -205,6 +225,8 @@ var app = {
 
 			app.debugInfo();
 		};
+
+		setTimeout(app.draw, app.speed);
 	},
 	removeLines: function (){
 	    var canvasData = app.frontCtx.getImageData(0, 0, window.innerWidth, window.innerHeight),
@@ -265,11 +287,8 @@ var app = {
 		var rgb = app.getMainColor();
 		var color = app.eraserColor;
 		if (color==255) {
-			//console.log('1');
-			// Si on est en train de faire des points noirs on passe au blanc
-
 			if (app.alpha==false) {
-				if (rgb.a>=230) {
+				if (rgb.a>=245) {
 					app.eraserColor=0;
 					app.alpha=true;
 					return true;
@@ -284,7 +303,6 @@ var app = {
 					return false;
 				}
 			}
-			
 		} else {
 			//console.log('2');
 			// Si on est en train de faire des points blancs on passe noir
@@ -313,11 +331,5 @@ var app = {
 	},
 	debugInfo: function () {
 		rgb = app.getMainColor();
-		app.debug_length.html('Length: '+app.length);
-		app.debug_density.html('Density: '+app.howMuch);
-		app.debug_level.html('Level: '+rgb.r+' '+rgb.g+' '+rgb.b+' '+rgb.a);
-		app.debug_color.html('Color: '+app.ctx.strokeStyle);
-		app.debug_xy.html('X: '+app.baseX+' '+'Y: '+app.baseY);
 	}
-
 };
