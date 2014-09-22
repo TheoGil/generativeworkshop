@@ -162,6 +162,8 @@ var app = {
 		app.speed = localStorage.getItem("param_speed") || 20;
 		app.densityMax = localStorage.getItem("param_densityMax") || 100;
 		app.maxLength = localStorage.getItem("param_maxLength") || 2000;
+		app.howMuch = Math.floor(Math.random()*app.densityMax);
+		app.angle = 360/app.howMuch;
 	},
 	rotate: function(cx, cy, x, y, angle) {
 	    var radians = (Math.PI / 180) * angle,
@@ -336,6 +338,5 @@ var app = {
 	},
 	debugInfo: function () {
 		rgb = app.getMainColor();
-		console.log(rgb);
 	}
 };
