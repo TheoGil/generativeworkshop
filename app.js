@@ -17,13 +17,8 @@ $( document ).ready(function() {
 var app = {
 
 	$debug: $('#debug'),
-	$canvas: null,
-
-	ctx: null,
-
 	baseY: null,
 	baseX: null,
-
 	w: null,
 	h: null,
 
@@ -100,6 +95,8 @@ var app = {
 	colorOffset: {red: 0, green: 1, blue: 2, alpha: 3, grey: 4},
 
 	init: function(){
+		// Va chercher les paramètres modifiés par l'utilisateur s'ils existent
+		// les initialise dans cas contraire
 		app.retrieveSettings();
 
 		app.w = window.innerWidth;
@@ -108,25 +105,30 @@ var app = {
 		this.baseY = app.h*.5;
 		this.baseX = app.w*.5;
 
-		this.$canvas = document.getElementById('myCanvas');
-
+		// Récupère canvas via jQuery pour modifier ses dimensions
 		var $canvasElement = $("#myCanvas");
 		$canvasElement.attr('height', app.h);
 		$canvasElement.attr('width', app.w);
 
+		// C'EST PAS SAIN D'AVOIR TOUS CES ELEMENTS QUI REPRESENTENT UN SEUL CANVAS
 
+		// Récupère canvas DOM
+		this.$canvas = document.getElementById('myCanvas');
 		this.ctx = this.$canvas.getContext("2d");
 		this.ctx.lineWidth = 1;
 		this.ctx.strokeStyle = 'rgba(0,0,0,0.2)';
 		//this.ctx.globalCompositeOperation = 'multiply';
 
-		// Retrieve debug elements tu update them lateer
+		// Récupère placeholder pour afficher paramètres
 		this.debug= $('#debug');
 		this.debug_length = $('#length');
 		this.debug_density = $('#density');
 		this.debug_speed = $('#speed');
+		app.debug_speed.html('Vitesse: '+app.speed+'ms');
+		app.debug_length.html('Longueure moyenne: '+app.maxLength);
+		app.debug_density.html('Densité max: '+app.densityMax);
 
-		// Set value and listen to input change
+		// Récupère inputs depuis DOM, définie leur valeure en fonction de leur modèle
 		var $inputSpeed = $('#input-speed');
 		var $inputLength = $('#input-length');
 		var $inputDensity = $('#input-density');
@@ -139,21 +141,16 @@ var app = {
 			localStorage.setItem("param_speed", app.speed);
 			app.debug_speed.html('Vitesse: '+app.speed+'ms');
 		});
-		app.debug_speed.html('Vitesse: '+app.speed+'ms');
-
 		$inputLength.change(function(){
 			app.maxLength = $inputLength.val();
 			localStorage.setItem("param_maxLength", app.maxLength);
 			app.debug_length.html('Longueure moyenne: '+app.maxLength);
 		});
-		app.debug_length.html('Longueure moyenne: '+app.maxLength);
-
 		$inputDensity.change(function(){
 			app.densityMax = $inputDensity.val();
 			localStorage.setItem("param_densityMax", app.densityMax);
 			app.debug_density.html('Densité max: '+app.densityMax);
 		});
-		app.debug_density.html('Densité max: '+app.densityMax);
 	},
 	retrieveSettings: function () {
 		app.speed = localStorage.getItem("param_speed") || 20;
@@ -180,32 +177,26 @@ var app = {
 		randB = Math.floor(Math.random()*255);
 		app.ctx.strokeStyle = 'rgba('+randR+','+randG+','+randB+',0.2)';*/
 
-		//app.debugInfo();
+		// TODO N'APPELER RENDER QU'UNE FOIS PAR ITERATION! DESSINER LES DEUX EQUERRE D'UN COUP
+			//Triangle exterieur
+			app.equerre.set(app.baseX, app.baseY, app.length, app.equerre.coord.angle);
+			app.equerre.render();
+			//Triangle interieur
+			var innerACoord = app.rotate(app.equerre.coord.a.x, app.equerre.coord.a.y, app.equerre.coord.a.x + app.equerre.coord.length/10, app.equerre.coord.a.y - app.equerre.coord.length/10, app.equerre.coord.angle);
+			app.equerre.set(
+				innerACoord.x,
+				innerACoord.y,
+				app.length/2,
+				app.equerre.coord.angle
+			);
+			app.equerre.render();
+		//
 
-		//Triangle exterieur
-		app.equerre.set(app.baseX, app.baseY, app.length, app.equerre.coord.angle);
-		app.equerre.render();
-		//Triangle interieur
-		var innerACoord = app.rotate(app.equerre.coord.a.x, app.equerre.coord.a.y, app.equerre.coord.a.x + app.equerre.coord.length/10, app.equerre.coord.a.y - app.equerre.coord.length/10, app.equerre.coord.angle);
-		app.equerre.set(
-			innerACoord.x,
-			innerACoord.y,
-			app.length/2,
-			app.equerre.coord.angle
-		);
-		app.equerre.render();
-		
-		/*Je suprime le contenu du fontCanvas puis copie le contenu du premier canvas vers le deuxieme et supprime les tracés surle dernier
-		//app.frontCtx.clearRect(0, 0, app.$canvasFront.width, app.$canvasFront.height);
-		app.frontCtx.drawImage(app.$canvas, 0, 0);
-		//app.removeLines();*/
-		
 		app.equerre.coord.angle += app.angle;
 
 		app.lineIterations++;
 
-		/*LET'S DO IT AGAIN!*/
-		if (app.lineIterations>=app.howMuch) {
+		if (app.lineIterations>app.howMuch) {
 			
 			app.lineIterations=0;
 			app.fullIterations++;
@@ -230,6 +221,7 @@ var app = {
 			app.debugInfo();
 		};
 
+		/*LET'S DO IT AGAIN!*/
 		setTimeout(app.draw, app.speed);
 	},
 	removeLines: function (){
