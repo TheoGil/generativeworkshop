@@ -15,7 +15,6 @@ $( document ).ready(function() {
 });
 
 var app = {
-
 	$debug: $('#debug'),
 	baseY: null,
 	baseX: null,
@@ -81,7 +80,8 @@ var app = {
 			length: null,
 			angle: null,
 		},
-		rapportInnerOuter: 10,
+		// TODO: DECOUVRIR A QUOI SERT CE PARAMETRE
+		rapportInnerOuter: 2,
 	},
 
 	length: 2000,
@@ -95,6 +95,8 @@ var app = {
 	colorOffset: {red: 0, green: 1, blue: 2, alpha: 3, grey: 4},
 
 	init: function(){
+		console.log("AVOIR UN TIMER QUI APPELLE doIneedToSwitchStrokeStyle() toutes les 5 secondes plutot qu'à chaque appel de draw");
+		
 		// Va chercher les paramètres modifiés par l'utilisateur s'ils existent
 		// les initialise dans cas contraire
 		app.retrieveSettings();
@@ -111,7 +113,6 @@ var app = {
 		$canvasElement.attr('width', app.w);
 
 		// C'EST PAS SAIN D'AVOIR TOUS CES ELEMENTS QUI REPRESENTENT UN SEUL CANVAS
-
 		// Récupère canvas DOM
 		this.$canvas = document.getElementById('myCanvas');
 		this.ctx = this.$canvas.getContext("2d");
@@ -204,25 +205,25 @@ var app = {
 			// Je réinitialise l'angle
 			app.equerre.coord.angle = 0;
 
-			//app.ctx.clearRect(0, 0, app.$canvas.width, app.$canvas.height);
-			
-			
 			app.length = Math.floor(Math.random()*app.maxLength)+app.h;
 			app.height = app.length/1.66;
 			app.baseX = Math.floor(Math.random()*app.w);
 			app.baseY = Math.floor(Math.random()*app.h);
-			app.howMuch = Math.floor(Math.random()*app.densityMax);
+			app.howMuch = Math.floor(Math.random()*app.densityMax)+1;
 			app.angle = 360/app.howMuch;
 
+			// -------> TODO, PLACER CETTE VERIFICATION DANS UN TIMER QUI PASSE TOUTES LES 5 SECONDES ENVIRON... <-------
 			if (app.fullIterations>5 && app.doIneedToSwitchStrokeStyle()) {
 				app.switchStrokeStyle(app.eraserColor);
 			};
 
-			app.debugInfo();
-		};
-
-		/*LET'S DO IT AGAIN!*/
-		setTimeout(app.draw, app.speed);
+			// A décommenter pour effacer le canvas a chaque fois qu'une forme est complétée
+			app.ctx.clearRect(0, 0, app.$canvas.width, app.$canvas.height);
+			
+			setTimeout(app.draw, app.speed);
+		} else {
+			setTimeout(app.draw, app.speed);	
+		}
 	},
 	removeLines: function (){
 	    var canvasData = app.frontCtx.getImageData(0, 0, window.innerWidth, window.innerHeight),
@@ -325,7 +326,4 @@ var app = {
 			//console.log('switchStrokeStyle 1');
 		}
 	},
-	debugInfo: function () {
-		rgb = app.getMainColor();
-	}
 };
