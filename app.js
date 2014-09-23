@@ -95,8 +95,6 @@ var app = {
 	colorOffset: {red: 0, green: 1, blue: 2, alpha: 3, grey: 4},
 
 	init: function(){
-		console.log("AVOIR UN TIMER QUI APPELLE doIneedToSwitchStrokeStyle() toutes les 5 secondes plutot qu'à chaque appel de draw");
-		
 		// Va chercher les paramètres modifiés par l'utilisateur s'ils existent
 		// les initialise dans cas contraire
 		app.retrieveSettings();
@@ -117,8 +115,7 @@ var app = {
 		this.$canvas = document.getElementById('myCanvas');
 		this.ctx = this.$canvas.getContext("2d");
 		this.ctx.lineWidth = 1;
-		this.ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-		//this.ctx.globalCompositeOperation = 'multiply';
+		this.ctx.strokeStyle = 'rgba(0,0,0,1)';
 
 		// Récupère placeholder pour afficher paramètres
 		this.debug= $('#debug');
@@ -198,6 +195,8 @@ var app = {
 		app.lineIterations++;
 
 		if (app.lineIterations>app.howMuch) {
+
+			app.rgb ? console.log(app.rgb.a) : console.log('nope');
 			
 			app.lineIterations=0;
 			app.fullIterations++;
@@ -212,44 +211,28 @@ var app = {
 			app.howMuch = Math.floor(Math.random()*app.densityMax)+1;
 			app.angle = 360/app.howMuch;
 
-			// -------> TODO, PLACER CETTE VERIFICATION DANS UN TIMER QUI PASSE TOUTES LES 5 SECONDES ENVIRON... <-------
-			if (app.fullIterations>5 && app.doIneedToSwitchStrokeStyle()) {
+			// app.switchStrokeCount>[nombre d'itération avant lesquelles on juge se demande doIneedToSwitchStrokeStyle()]
+			/*if (app.switchStrokeCount>10) {
+				if (app.fullIterations>5 && app.doIneedToSwitchStrokeStyle()) {
+					app.switchStrokeStyle(app.eraserColor);
+				};
+				app.switchStrokeCount = 0;
+			};
+			app.switchStrokeCount++;*/
+
+			if (app.fullIterations>1 && app.doIneedToSwitchStrokeStyle()) {
 				app.switchStrokeStyle(app.eraserColor);
 			};
 
 			// A décommenter pour effacer le canvas a chaque fois qu'une forme est complétée
-			app.ctx.clearRect(0, 0, app.$canvas.width, app.$canvas.height);
+			// app.ctx.clearRect(0, 0, app.$canvas.width, app.$canvas.height);
 			
 			setTimeout(app.draw, app.speed);
 		} else {
 			setTimeout(app.draw, app.speed);	
 		}
 	},
-	removeLines: function (){
-	    var canvasData = app.frontCtx.getImageData(0, 0, window.innerWidth, window.innerHeight),
-        //pix contient les infos rgba de tous les pixels contenu dans le canvas
-        pix = canvasData.data;
-	    
-	    /* R - G - B - A
-	    	pix[0] correspond à la couleur rouge du 1er pixel,
-	    	pix[1] correspond à la couleur verte du 1er pixel,
-	    	pix[2] correspond à la couleur bleue  du 1er pixel,
-	    	pix[3] correspond à l'opacité du premier pixel,
-	    	pix[4] correspond à la couleur rouge du 2nd pixel... etc etc
-	    	C'est pour cela que j'incrémente i de 4 plutot que d'1 dans la boucle
-	   	*/
-		for (var i = 0, n = pix.length; i <n; i += 4) {
-	        //Si le pixel ciblé n'est pas 100% opaque, je le baisse à 0%.
-	    	if (pix[i+3]<150) {
-	    		pix[i]=app.eraserColor;
-	    		pix[i+1]=app.eraserColor;
-	    		pix[i+2]=app.eraserColor;
-	    		pix[i+3]=255;
-	    	}
-	    }
-	    
-	    app.frontCtx.putImageData(canvasData, 0, 0);
-	},
+	switchStrokeCount: 0,
 	getMainColor: function () {
 	    var canvasData = app.ctx.getImageData(0, 0, app.$canvas.width, app.$canvas.height);
         var pix = canvasData.data;
@@ -264,24 +247,26 @@ var app = {
 	    	pix[4] correspond à la couleur rouge du 2nd pixel... etc etc
 	    	C'est pour cela que j'incrémente i de 4 plutot que d'1 dans la boucle
 	   	*/
-		for (var i = 0; i <pix.length; i += 4) {
+	   	// for (var i = 0; i <pix.length; i += 4) {
+	   	var increment = 4000;
+		for (var i = 0; i <pix.length; i += increment) {
 	        rgba.r += pix[i];
 	        rgba.g += pix[i+1];
 	        rgba.b += pix[i+2];
 	        rgba.a += pix[i+3];
 	    }
 
-
-	    var pixNumber = pix.length/4;
+	    // var pixNumber = pix.length/4;
+	    var pixNumber = pix.length/increment;
 	    rgba.r = Math.floor(rgba.r/pixNumber);
 	    rgba.g = Math.floor(rgba.g/pixNumber);
 	    rgba.b = Math.floor(rgba.b/pixNumber);
 	    rgba.a = Math.floor(rgba.a/pixNumber);
-
 	    return rgba;
 	},
 	doIneedToSwitchStrokeStyle: function(){
-		var rgb = app.getMainColor();
+		app.rgb = app.getMainColor();
+		var rgb = app.rgb;
 		var color = app.eraserColor;
 		if (color==255) {
 			if (app.alpha==false) {
