@@ -177,14 +177,25 @@ var app = {
 
 		// TODO N'APPELER RENDER QU'UNE FOIS PAR ITERATION! DESSINER LES DEUX EQUERRE D'UN COUP
 			//Triangle exterieur
-			app.equerre.set(app.baseX, app.baseY, app.length, app.equerre.coord.angle);
+			app.equerre.set(
+				app.baseX,
+				app.baseY,
+				app.length,
+				app.equerre.coord.angle
+			);
 			app.equerre.render();
 			//Triangle interieur
-			var innerACoord = app.rotate(app.equerre.coord.a.x, app.equerre.coord.a.y, app.equerre.coord.a.x + app.equerre.coord.length/10, app.equerre.coord.a.y - app.equerre.coord.length/10, app.equerre.coord.angle);
+			var innerACoord = app.rotate(
+				app.equerre.coord.a.x,
+				app.equerre.coord.a.y,
+				app.equerre.coord.a.x + app.equerre.coord.length/10,
+				app.equerre.coord.a.y - app.equerre.coord.length/10,
+				app.equerre.coord.angle
+			);
 			app.equerre.set(
-				innerACoord.x,
-				innerACoord.y,
-				app.length/2,
+				innerACoord.x - app.length,
+				innerACoord.y - app.length,
+				app.length/5,
 				app.equerre.coord.angle
 			);
 			app.equerre.render();
@@ -195,8 +206,6 @@ var app = {
 		app.lineIterations++;
 
 		if (app.lineIterations>app.howMuch) {
-
-			app.rgb ? console.log(app.rgb.a) : console.log('nope');
 			
 			app.lineIterations=0;
 			app.fullIterations++;
@@ -211,21 +220,12 @@ var app = {
 			app.howMuch = Math.floor(Math.random()*app.densityMax)+1;
 			app.angle = 360/app.howMuch;
 
-			// app.switchStrokeCount>[nombre d'itération avant lesquelles on juge se demande doIneedToSwitchStrokeStyle()]
-			/*if (app.switchStrokeCount>10) {
-				if (app.fullIterations>5 && app.doIneedToSwitchStrokeStyle()) {
-					app.switchStrokeStyle(app.eraserColor);
-				};
-				app.switchStrokeCount = 0;
-			};
-			app.switchStrokeCount++;*/
-
 			if (app.fullIterations>1 && app.doIneedToSwitchStrokeStyle()) {
 				app.switchStrokeStyle(app.eraserColor);
 			};
 
 			// A décommenter pour effacer le canvas a chaque fois qu'une forme est complétée
-			// app.ctx.clearRect(0, 0, app.$canvas.width, app.$canvas.height);
+			app.ctx.clearRect(0, 0, app.$canvas.width, app.$canvas.height);
 			
 			setTimeout(app.draw, app.speed);
 		} else {
