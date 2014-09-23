@@ -11,9 +11,6 @@ $( document ).ready(function() {
 	$(window).bind("resize", function(){
 	    var w = $(window).width();
 	    var h = $(window).height();
-
-	    $("#myCanvas").css("width", w + "px");
-	    $("#myCanvas").css("height", h + "px"); 
 	});
 });
 
