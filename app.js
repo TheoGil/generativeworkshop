@@ -116,7 +116,7 @@ var app = {
 		// Récupère canvas DOM
 		this.$canvas = document.getElementById('myCanvas');
 		this.ctx = this.$canvas.getContext("2d");
-		this.ctx.lineWidth = 10;
+		this.ctx.lineWidth = 50;
 		this.ctx.strokeStyle = 'rgba(0,0,0,0.1)';
 
 		// Récupère placeholder pour afficher paramètres
@@ -211,8 +211,11 @@ var app = {
 		app.equerre.coord.angle += app.angle;
 
 		// UPDATE SPEED
-		// app.speed = app.speed -= 10;
-		// app.debug_currentSpeed.html('Vitesse: '+app.speed+'ms');
+		app.rgb = app.getMainColor();
+		var percent = Math.floor((app.rgb.r/255)*100);
+		app.speed = app.speed -= (100-percent);
+		console.log(100-percent);
+		app.debug_currentSpeed.html('Vitesse: '+app.speed+'ms');
 
 		app.lineIterations++;
 
@@ -231,7 +234,7 @@ var app = {
 			app.howMuch = Math.floor(Math.random()*app.densityMax)+1;
 			app.angle = 360/app.howMuch;
 
-			app.rgb = app.getMainColor();
+			// app.rgb = app.getMainColor();
 
 			if (app.fullIterations>1 && app.doIneedToSwitchStrokeStyle()) {
 				app.speed = localStorage.getItem("param_speed") || 20;
@@ -276,8 +279,6 @@ var app = {
 	    rgba.g = Math.floor(rgba.g/pixNumber);
 	    rgba.b = Math.floor(rgba.b/pixNumber);
 	    rgba.a = Math.floor(rgba.a/pixNumber);
-
-	    console.log(rgba);
 
 	    return rgba;
 	},
