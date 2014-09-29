@@ -57,6 +57,7 @@ var app = {
 			app.ctx.lineTo(this.coord.b.x, this.coord.b.y);
 			app.ctx.lineTo(this.coord.c.x, this.coord.c.y);
 			app.ctx.lineTo(this.coord.a.x, this.coord.a.y);
+			
 			app.ctx.stroke();
 
 			/*app.ctx.rect(this.coord.a.x, this.coord.a.y, this.coord.length/100, this.coord.length/100);
@@ -88,6 +89,7 @@ var app = {
 	height: 2000/1.66,
 	maxLength: 2000,
 	colorChangeThreshold: 20,
+	// OK, alors cette variable mal nommée correspond à la couleur opposée de celle courament utilisée
 	eraserColor: 255,
 
 	alpha: false,
@@ -114,14 +116,15 @@ var app = {
 		// Récupère canvas DOM
 		this.$canvas = document.getElementById('myCanvas');
 		this.ctx = this.$canvas.getContext("2d");
-		this.ctx.lineWidth = 1;
-		this.ctx.strokeStyle = 'rgba(0,0,0,1)';
+		this.ctx.lineWidth = 10;
+		this.ctx.strokeStyle = 'rgba(0,0,0,0.1)';
 
 		// Récupère placeholder pour afficher paramètres
 		this.debug= $('#debug');
 		this.debug_length = $('#length');
 		this.debug_density = $('#density');
 		this.debug_speed = $('#speed');
+		this.debug_currentSpeed = $('#currentSpeed');
 		app.debug_speed.html('Vitesse: '+app.speed+'ms');
 		app.debug_length.html('Longueure moyenne: '+app.maxLength);
 		app.debug_density.html('Densité max: '+app.densityMax);
@@ -149,6 +152,11 @@ var app = {
 			localStorage.setItem("param_densityMax", app.densityMax);
 			app.debug_density.html('Densité max: '+app.densityMax);
 		});
+
+		this.ctx.beginPath();
+		this.ctx.rect(0, 0, app.w, app.h);
+		this.ctx.fillStyle = 'white';
+	    this.ctx.fill();
 	},
 	retrieveSettings: function () {
 		app.speed = localStorage.getItem("param_speed") || 20;
@@ -193,15 +201,18 @@ var app = {
 				app.equerre.coord.angle
 			);
 			app.equerre.set(
-				innerACoord.x - app.length,
-				innerACoord.y - app.length,
-				app.length/5,
+				innerACoord.x,
+				innerACoord.y,
+				app.length/2,
 				app.equerre.coord.angle
 			);
 			app.equerre.render();
-		//
 
 		app.equerre.coord.angle += app.angle;
+
+		// UPDATE SPEED
+		// app.speed = app.speed -= 10;
+		// app.debug_currentSpeed.html('Vitesse: '+app.speed+'ms');
 
 		app.lineIterations++;
 
@@ -220,12 +231,15 @@ var app = {
 			app.howMuch = Math.floor(Math.random()*app.densityMax)+1;
 			app.angle = 360/app.howMuch;
 
+			app.rgb = app.getMainColor();
+
 			if (app.fullIterations>1 && app.doIneedToSwitchStrokeStyle()) {
+				app.speed = localStorage.getItem("param_speed") || 20;
 				app.switchStrokeStyle(app.eraserColor);
 			};
 
 			// A décommenter pour effacer le canvas a chaque fois qu'une forme est complétée
-			app.ctx.clearRect(0, 0, app.$canvas.width, app.$canvas.height);
+			// app.ctx.clearRect(0, 0, app.$canvas.width, app.$canvas.height);
 			
 			setTimeout(app.draw, app.speed);
 		} else {
@@ -262,33 +276,25 @@ var app = {
 	    rgba.g = Math.floor(rgba.g/pixNumber);
 	    rgba.b = Math.floor(rgba.b/pixNumber);
 	    rgba.a = Math.floor(rgba.a/pixNumber);
+
+	    console.log(rgba);
+
 	    return rgba;
 	},
 	doIneedToSwitchStrokeStyle: function(){
-		app.rgb = app.getMainColor();
 		var rgb = app.rgb;
 		var color = app.eraserColor;
 		if (color==255) {
-			if (app.alpha==false) {
-				if (rgb.a>=250) {
-					app.eraserColor=0;
-					app.alpha=true;
-					return true;
-				} else {
-					return false;
-				}
+			if (rgb.r <= 4, rgb.g <= 4, rgb.b <= 4) {
+				app.eraserColor=0;
+				return true;
 			} else {
-				if (rgb.r <= 4, rgb.g <= 4, rgb.b <= 4) {
-					app.eraserColor=0;
-					return true;
-				} else {
-					return false;
-				}
+				return false;
 			}
 		} else {
 			//console.log('2');
 			// Si on est en train de faire des points blancs on passe noir
-			if (rgb.r >= 230, rgb.g >= 230, rgb.b >= 230) {
+			if (rgb.r >= 250, rgb.g >= 250, rgb.b >= 250) {
 				app.eraserColor=255;
 				return true;
 			} else {
@@ -310,5 +316,5 @@ var app = {
 			app.fullIterations = 0;
 			//console.log('switchStrokeStyle 1');
 		}
-	},
+	}
 };
